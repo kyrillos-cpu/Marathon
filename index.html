@@ -172,6 +172,24 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
 .minfo{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:grid;gap:14px;margin-bottom:40px}
 .minfo ul{margin:0;padding-right:20px;display:grid;gap:6px}
 .minfo li::marker{color:var(--accent)}
+.mat-stage{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mat-stage button,.mat-topics button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:10px;padding:10px;cursor:pointer}
+.mat-stage button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.mat-topics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.mat-topics button{padding:9px 6px;font-size:14px}
+.mat-topics button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mat-topics button .cnt{display:block;font-size:11.5px;font-weight:500;opacity:.8}
+.mat-part{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.mat-part h3{display:flex;align-items:center;gap:8px}
+.mat-part h3 .ic{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--teal-soft);font-size:16px}
+.mat-item{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--bg)}
+.mat-item .t{flex:1;min-width:0}
+.mat-item .t b{display:block;overflow-wrap:anywhere}
+.mat-item .t small{color:var(--muted)}
+.mat-item a.btn{text-decoration:none;flex:none}
+.mat-video{position:relative;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000}
+.mat-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.mat-empty{color:var(--muted);font-size:14px;margin:0}
 </style>
 </head>
 <body>
@@ -189,6 +207,7 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <button role="tab" data-tab="book" aria-selected="false"><span class="sn">٢</span>طلب حجز</button>
     <button role="tab" data-tab="mission" aria-selected="false"><span class="sn">٣</span><span dir="ltr">Marathon Mission</span></button>
     <button role="tab" data-tab="report" aria-selected="false"><span class="sn">٤</span>كرنفالات خدام الإيبارشية</button>
+    <button role="tab" data-tab="files" aria-selected="false">ملفات تنفيذ الكرنفال</button>
     <button role="tab" data-tab="mine" aria-selected="false">متابعة إيبارشيتي</button>
     <button role="tab" data-tab="coord" aria-selected="false" class="adm" data-admin hidden>منسقين الإيبارشيات</button>
   </div>
@@ -587,6 +606,21 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     </form>
   </section>
 
+  <!-- CARNIVAL FILES -->
+  <section data-panel="files" class="stats" hidden>
+    <div class="stats-head">
+      <div><h2>ملفات تنفيذ الكرنفال</h2><p class="lead">اختار المنهج والموضوع، وهتلاقي شرح الكرنفال والماتريال والفيديوهات.</p></div>
+      <button class="btn ghost sm" type="button" id="mat_refresh">تحديث</button>
+    </div>
+    <div class="mat-stage" role="group" aria-label="المنهج">
+      <button type="button" data-stage="ابتدائي" aria-pressed="true">منهج ابتدائي</button>
+      <button type="button" data-stage="إعدادي" aria-pressed="false">منهج إعدادي</button>
+    </div>
+    <div class="mat-topics" id="mat_topics" role="group" aria-label="الموضوع"></div>
+    <div id="mat_parts" style="display:grid;gap:12px"></div>
+    <div class="msg" id="matMsg" role="status"></div>
+  </section>
+
   <!-- MY EPARCHY -->
   <section data-panel="mine" class="stats" hidden>
     <div class="stats-head">
@@ -730,6 +764,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
     if(name==='stats' && !stats) loadStats();
     if(name==='coord') loadCoords();
     if(name==='mine') loadMine();
+    if(name==='files') loadMat();
     if(name==='mission'){ var a=!!(user && user.role==='admin'); $('#missInfo').hidden=a; $('#missForm').hidden=!a; }
   }
   document.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ openTab(b.dataset.tab); }; });
@@ -964,6 +999,45 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
       $('#coordForm').reset(); say(m,'اتسجل '+name+'. يقدر يدخل دلوقتي بالإيميل ورقم موبايله.',true); loadCoords();
     });
   });
+
+  // ===== ملفات تنفيذ الكرنفال =====
+  var MAT_TOPICS=['الأكل','الميديا','السجاير','مواد خطرة','التنمر','العلاقات'];
+  var MAT_PARTS=[['شرح الكرنفال','📄','ملف بيشرح يوم الكرنفال خطوة بخطوة'],['الماتريال','🧰','ملفات أو لينكات للماتريال المطلوبة'],['الفيديوهات','🎬','فيديوهات الموضوع']];
+  var mat=null, matStage='ابتدائي', matTopic=MAT_TOPICS[0];
+  try{ var ms=JSON.parse(localStorage.getItem('mar_mat_sel')||'{}'); if(ms.s) matStage=ms.s; if(ms.t && MAT_TOPICS.indexOf(ms.t)>-1) matTopic=ms.t; }catch(e){}
+  function ytId(u){ var m=String(u).match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([\w-]{11})/); return m?m[1]:''; }
+  function kindIcon(u){ u=String(u).toLowerCase(); if(ytId(u)) return '▶️'; if(/\.pdf(\?|$)/.test(u)) return '📕'; if(/drive\.google|docs\.google/.test(u)) return '📁'; return '🔗'; }
+  function renderMat(){
+    document.querySelectorAll('.mat-stage button').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.stage===matStage); });
+    var inStage=(mat||[]).filter(function(m){ return m.stage===matStage; });
+    $('#mat_topics').innerHTML=MAT_TOPICS.map(function(t){
+      var n=inStage.filter(function(m){ return m.topic===t; }).length;
+      return '<button type="button" data-topic="'+esc(t)+'" aria-pressed="'+(t===matTopic)+'">'+esc(t)+'<span class="cnt">'+(n?fmt(n)+' ملف':'لسه فاضي')+'</span></button>';
+    }).join('');
+    var items=inStage.filter(function(m){ return m.topic===matTopic; });
+    $('#mat_parts').innerHTML=MAT_PARTS.map(function(p){
+      var list=items.filter(function(m){ return m.part===p[0]; });
+      var body=list.length ? list.map(function(m){
+        var y=p[0]==='الفيديوهات' ? ytId(m.url) : '';
+        var head='<div class="mat-item"><span aria-hidden="true">'+kindIcon(m.url)+'</span><div class="t"><b>'+esc(m.title||'بدون عنوان')+'</b>'+(m.note?'<small>'+esc(m.note)+'</small>':'')+'</div>'+
+          '<a class="btn sm" href="'+esc(m.url)+'" target="_blank" rel="noopener">فتح</a></div>';
+        return y ? head+'<div class="mat-video"><iframe loading="lazy" src="https://www.youtube-nocookie.com/embed/'+y+'" title="'+esc(m.title)+'" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>' : head;
+      }).join('') : '<p class="mat-empty">لسه مفيش حاجة هنا.</p>';
+      return '<div class="mat-part"><h3><span class="ic" aria-hidden="true">'+p[1]+'</span>'+p[0]+'</h3><p class="hint">'+p[2]+'</p>'+body+'</div>';
+    }).join('');
+  }
+  function loadMat(force){
+    renderMat();
+    if(PREVIEW || (mat && !force)) return;
+    var m=$('#matMsg'); say(m,'جاري التحميل...',true); $('#mat_refresh').disabled=true;
+    google.script.run.withSuccessHandler(function(list){ $('#mat_refresh').disabled=false; m.textContent=''; mat=list||[]; renderMat(); })
+      .withFailureHandler(function(err){ $('#mat_refresh').disabled=false; if(isAuthErr(err)){ logout(); return; } say(m,errText(err),false); })
+      .getMaterials(token);
+  }
+  function saveMatSel(){ try{ localStorage.setItem('mar_mat_sel',JSON.stringify({s:matStage,t:matTopic})); }catch(e){} }
+  document.querySelectorAll('.mat-stage button').forEach(function(b){ b.onclick=function(){ matStage=b.dataset.stage; saveMatSel(); renderMat(); }; });
+  $('#mat_topics').addEventListener('click',function(e){ var b=e.target.closest('button[data-topic]'); if(!b) return; matTopic=b.dataset.topic; saveMatSel(); renderMat(); });
+  $('#mat_refresh').onclick=function(){ loadMat(true); };
 
   // ===== متابعة إيبارشيتي =====
   var ST={'مبدئي':'s1','قيد التنسيق':'s2','تم التأكيد':'s3','تمت الخدمة':'s4','اتلغى':'s5'};
