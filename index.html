@@ -190,6 +190,10 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
 .mat-video{position:relative;padding-top:56.25%;border-radius:10px;overflow:hidden;background:#000}
 .mat-video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .mat-empty{color:var(--muted);font-size:14px;margin:0}
+.loginbox{border:2px solid var(--accent);margin-bottom:20px}
+.loginbox h2{font-size:20px}
+.loginbox.flash{animation:flash 1s ease 2}
+@keyframes flash{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 35%,transparent)}}
 </style>
 </head>
 <body>
@@ -203,12 +207,12 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <button role="tab" data-tab="about" aria-selected="true">عن الخدمة</button>
     <button role="tab" data-tab="steps" aria-selected="false">خطوات التأسيس</button>
     <button role="tab" data-tab="stats" aria-selected="false">الإحصائيات</button>
-    <button role="tab" data-tab="team" aria-selected="false"><span class="sn">١</span>الفريق المحلي</button>
-    <button role="tab" data-tab="book" aria-selected="false"><span class="sn">٢</span>طلب حجز</button>
-    <button role="tab" data-tab="mission" aria-selected="false"><span class="sn">٣</span><span dir="ltr">Marathon Mission</span></button>
-    <button role="tab" data-tab="report" aria-selected="false"><span class="sn">٤</span>كرنفالات خدام الإيبارشية</button>
-    <button role="tab" data-tab="files" aria-selected="false">ملفات تنفيذ الكرنفال</button>
-    <button role="tab" data-tab="mine" aria-selected="false">متابعة إيبارشيتي</button>
+    <button role="tab" data-tab="team" aria-selected="false" data-auth hidden><span class="sn">١</span>الفريق المحلي</button>
+    <button role="tab" data-tab="book" aria-selected="false" data-auth hidden><span class="sn">٢</span>طلب حجز</button>
+    <button role="tab" data-tab="mission" aria-selected="false" data-auth hidden><span class="sn">٣</span><span dir="ltr">Marathon Mission</span></button>
+    <button role="tab" data-tab="report" aria-selected="false" data-auth hidden><span class="sn">٤</span>كرنفالات خدام الإيبارشية</button>
+    <button role="tab" data-tab="files" aria-selected="false" data-auth hidden>ملفات تنفيذ الكرنفال</button>
+    <button role="tab" data-tab="mine" aria-selected="false" data-auth hidden>متابعة إيبارشيتي</button>
     <button role="tab" data-tab="coord" aria-selected="false" class="adm" data-admin hidden>منسقين الإيبارشيات</button>
   </div>
   <div class="userbar" id="userbar" hidden>
@@ -216,15 +220,18 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <button class="btn ghost sm" type="button" id="logout">خروج</button>
   </div>
 
-  <!-- LOGIN -->
-  <form id="loginForm" data-panel="login" class="lock" novalidate hidden>
-    <div><h2>تسجيل الدخول</h2><p class="lead">التسجيل لمنسقين الإيبارشيات وأدمن ماراثون بس. ادخل بالإيميل اللي اتسجلت بيه، وكلمة السر هي رقم موبايلك.</p></div>
-    <label><span class="req">الإيميل</span><input id="l_email" type="email" autocomplete="username" placeholder="name@gmail.com"></label>
-    <label><span class="req">كلمة السر (رقم الموبايل)</span>
-      <span class="pw"><input id="l_pass" type="password" inputmode="tel" autocomplete="current-password" placeholder="01xxxxxxxxx"><button type="button" id="l_show">إظهار</button></span></label>
+  <!-- LOGIN: بيظهر تحت التابات على طول لحد ما الشخص يعمل دخول -->
+  <form id="loginForm" class="loginbox" novalidate>
+    <div><h2>سجّل دخولك لتسجيل أو إضافة كرنفال</h2>
+      <p class="lead">لمنسقين الإيبارشيات وأدمن ماراثون: ادخل بالإيميل اللي اتسجلت بيه، وكلمة السر هي رقم موبايلك.</p></div>
+    <div class="grid">
+      <label><span class="req">الإيميل</span><input id="l_email" type="email" autocomplete="username" placeholder="name@gmail.com"></label>
+      <label><span class="req">كلمة السر (رقم الموبايل)</span>
+        <span class="pw"><input id="l_pass" type="password" inputmode="tel" autocomplete="current-password" placeholder="01xxxxxxxxx"><button type="button" id="l_show">إظهار</button></span></label>
+    </div>
     <div class="row"><button class="btn" type="submit">دخول</button></div>
     <div class="msg" id="loginMsg" role="status"></div>
-    <p class="hint">مش متسجل؟ كلّم أدمن ماراثون يسجّلك كمنسق لإيبارشيتك.</p>
+    <p class="hint">بعد الدخول هتظهرلك تابات التسجيل: الفريق المحلي، وطلب الحجز، وكرنفالات خدام الإيبارشية، وملفات تنفيذ الكرنفال. مش متسجل؟ كلّم أدمن ماراثون يسجّلك كمنسق لإيبارشيتك.</p>
   </form>
 
   <!-- ABOUT -->
@@ -747,7 +754,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   function say(el,t,ok){ el.textContent=t; el.className='msg '+(ok?'ok':'err'); }
 
   // ===== الدخول =====
-  var PUBLIC=['about','steps','stats','mission'], ADMIN=['coord'];
+  var PUBLIC=['about','steps','stats'], ADMIN=['coord'];
   var token='', user=null, pending='';
   try{ token=localStorage.getItem('mar_tok')||''; }catch(e){}
 
@@ -758,7 +765,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
     window.scrollTo(0,0);
   }
   function openTab(name){
-    if(PUBLIC.indexOf(name)===-1 && !user && !PREVIEW){ pending=name; showPanel('login', name); return; }
+    if(PUBLIC.indexOf(name)===-1 && !user && !PREVIEW){ pending=name; askLogin(); return; }
     if(ADMIN.indexOf(name)>-1 && user && user.role!=='admin') name='about';
     showPanel(name, name);
     if(name==='stats' && !stats) loadStats();
@@ -769,9 +776,17 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   }
   document.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ openTab(b.dataset.tab); }; });
 
+  function askLogin(){
+    var f=$('#loginForm'); f.hidden=false; f.scrollIntoView({behavior:'smooth',block:'start'});
+    f.classList.remove('flash'); void f.offsetWidth; f.classList.add('flash');
+    setTimeout(function(){ try{ $('#l_email').focus({preventScroll:true}); }catch(e){} },400);
+  }
   function setUser(u){
     user=u;
     $('#userbar').hidden=!u;
+    $('#loginForm').hidden=!!u;
+    document.querySelectorAll('[data-auth]').forEach(function(b){ b.hidden=!u; });
+    try{ if(u) localStorage.setItem('mar_user',JSON.stringify(u)); else localStorage.removeItem('mar_user'); }catch(e){}
     document.querySelectorAll('[data-admin]').forEach(function(b){ b.hidden=!(u && u.role==='admin'); });
     if(!u) return;
     $('#u_name').textContent=u.name||u.email;
@@ -792,7 +807,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
     google.script.run
       .withSuccessHandler(function(r){
         btn.disabled=false; m.textContent=''; token=r.token; try{ localStorage.setItem('mar_tok',token); }catch(e){}
-        $('#l_pass').value=''; setUser(r.user); openTab(pending||'book'); pending='';
+        $('#l_pass').value=''; setUser(r.user); if(pending) openTab(pending); pending='';
       })
       .withFailureHandler(function(err){ btn.disabled=false; say(m,errText(err),false); })
       .login(val('#l_email'), val('#l_pass'));
@@ -917,7 +932,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
       .withSuccessHandler(function(r){ btn.disabled=false; onOk(r); })
       .withFailureHandler(function(err){
         btn.disabled=false;
-        if(isAuthErr(err)){ var t=errText(err); logout(); pending=''; showPanel('login',''); say($('#loginMsg'),t,false); return; }
+        if(isAuthErr(err)){ var t=errText(err); logout(); pending=''; askLogin(); say($('#loginMsg'),t,false); return; }
         say(msg,errText(err),false); })
       [fn](token, payload);
   }
@@ -1078,9 +1093,12 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   });
 
   // أول ما الصفحة تفتح: لو فيه دخول محفوظ نتأكد منه
+  // بنعرض آخر دخول محفوظ على طول عشان التابات ما ترمشش، وبعدين نتأكد منه من جوجل
+  var lastUser=null; try{ lastUser=JSON.parse(localStorage.getItem('mar_user')||'null'); }catch(e){}
+  if(token && lastUser) setUser(lastUser); else setUser(null);
   if(token && !PREVIEW){
     google.script.run.withSuccessHandler(setUser)
-      .withFailureHandler(function(){ token=''; try{ localStorage.removeItem('mar_tok'); }catch(e){} })
+      .withFailureHandler(function(err){ if(isAuthErr(err)){ token=''; try{ localStorage.removeItem('mar_tok'); }catch(e){} setUser(null); } })
       .whoAmI(token);
   }
 })();
