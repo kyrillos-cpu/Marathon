@@ -669,7 +669,7 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
   <!-- CONFIRM BOOKINGS (admin) -->
   <section data-panel="confirm" class="stats" hidden>
     <div class="stats-head">
-      <div><h2>تأكيد الحجوزات</h2><p class="lead">كل طلبات الحجز اللي في تاب «طلبات الحجز». غيّر الحالة ودوس حفظ: بتتكتب في الشيت، والمواعيد المؤكدة بتنزل في الكالندر، واللي طلب الحجز بيوصله إيميل.</p></div>
+      <div><h2>تأكيد الحجوزات</h2><p class="lead">كل طلبات الحجز اللي في تاب «طلبات الحجز». غيّر الحالة ودوس حفظ: بتتكتب في الشيت على طول، واللي طلب الحجز بيوصله إيميل بالحالة الجديدة.</p></div>
       <button class="btn ghost sm" type="button" id="bk_refresh">تحديث</button>
     </div>
     <div class="bk-filter" id="bk_filter" role="group" aria-label="الحالة"></div>
@@ -1122,7 +1122,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
     var card=e.target.closest('.bk'), msg=card.querySelector('.bk_msg'), st=card.querySelector('.bk_st').value;
     send('setBookingStatus',{row:card.dataset.row,key:card.dataset.key,eparchy:card.dataset.ep,status:st},e.target,msg,function(){
       (bk||[]).forEach(function(b){ if(String(b.row)===card.dataset.row && String(b.key)===card.dataset.key) b.status=st; });
-      say(msg,'اتحفظ ✓'+(st==='تم التأكيد'?' ونزل في الكالندر':''),true);
+      say(msg,'اتحفظ ✓',true);
       setTimeout(renderBk,1200);
     });
   });
