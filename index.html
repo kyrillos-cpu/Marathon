@@ -194,6 +194,19 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
 .loginbox h2{font-size:20px}
 .loginbox.flash{animation:flash 1s ease 2}
 @keyframes flash{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 35%,transparent)}}
+.bk-filter{display:flex;flex-wrap:wrap;gap:6px}
+.bk-filter button{font:inherit;font-size:13.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:20px;padding:6px 12px;cursor:pointer}
+.bk-filter button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.bk{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.bk.s1{border-inline-start:5px solid #e9b300}.bk.s2{border-inline-start:5px solid #e07a1c}.bk.s3{border-inline-start:5px solid #17607f}.bk.s4{border-inline-start:5px solid #2e8b4a}.bk.s5{border-inline-start:5px solid #9a9a9a}
+.bk-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.bk-top b{font-size:17px}.bk-top small{display:block;color:var(--muted);font-size:12.5px}
+.bk dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0;font-size:14px}
+.bk dt{color:var(--muted)}.bk dd{margin:0;overflow-wrap:anywhere}
+.bk-contact{display:flex;flex-wrap:wrap;gap:6px}
+.bk-contact a{text-decoration:none}
+.bk-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bk-act select{flex:1;min-width:150px}
 </style>
 </head>
 <body>
@@ -213,6 +226,7 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <button role="tab" data-tab="report" aria-selected="false" data-auth hidden><span class="sn">٤</span>كرنفالات خدام الإيبارشية</button>
     <button role="tab" data-tab="files" aria-selected="false" data-auth hidden>ملفات تنفيذ الكرنفال</button>
     <button role="tab" data-tab="mine" aria-selected="false" data-auth hidden>متابعة إيبارشيتي</button>
+    <button role="tab" data-tab="confirm" aria-selected="false" class="adm" data-admin hidden>تأكيد الحجوزات</button>
     <button role="tab" data-tab="coord" aria-selected="false" class="adm" data-admin hidden>منسقين الإيبارشيات</button>
   </div>
   <div class="userbar" id="userbar" hidden>
@@ -652,6 +666,18 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <div class="msg" id="mineMsg" role="status"></div>
   </section>
 
+  <!-- CONFIRM BOOKINGS (admin) -->
+  <section data-panel="confirm" class="stats" hidden>
+    <div class="stats-head">
+      <div><h2>تأكيد الحجوزات</h2><p class="lead">كل طلبات الحجز اللي في تاب «طلبات الحجز». غيّر الحالة ودوس حفظ: بتتكتب في الشيت، والمواعيد المؤكدة بتنزل في الكالندر، واللي طلب الحجز بيوصله إيميل.</p></div>
+      <button class="btn ghost sm" type="button" id="bk_refresh">تحديث</button>
+    </div>
+    <div class="bk-filter" id="bk_filter" role="group" aria-label="الحالة"></div>
+    <label><span>دوّر بالإيبارشية أو اسم المسئول</span><input id="bk_q" type="search" placeholder="مثلاً: ملوى"></label>
+    <div id="bk_list" style="display:grid;gap:12px"></div>
+    <div class="msg" id="bkMsg" role="status"></div>
+  </section>
+
   <!-- COORDINATORS (admin) -->
   <section data-panel="coord" hidden>
     <form id="coordForm" novalidate>
@@ -754,7 +780,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   function say(el,t,ok){ el.textContent=t; el.className='msg '+(ok?'ok':'err'); }
 
   // ===== الدخول =====
-  var PUBLIC=['about','steps','stats'], ADMIN=['coord'];
+  var PUBLIC=['about','steps','stats'], ADMIN=['coord','confirm'];
   var token='', user=null, pending='';
   try{ token=localStorage.getItem('mar_tok')||''; }catch(e){}
 
@@ -772,6 +798,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
     if(name==='coord') loadCoords();
     if(name==='mine') loadMine();
     if(name==='files') loadMat();
+    if(name==='confirm') loadBk();
     if(name==='mission'){ var a=!!(user && user.role==='admin'); $('#missInfo').hidden=a; $('#missForm').hidden=!a; }
   }
   document.querySelectorAll('[data-tab]').forEach(function(b){ b.onclick=function(){ openTab(b.dataset.tab); }; });
@@ -1053,6 +1080,52 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   document.querySelectorAll('.mat-stage button').forEach(function(b){ b.onclick=function(){ matStage=b.dataset.stage; saveMatSel(); renderMat(); }; });
   $('#mat_topics').addEventListener('click',function(e){ var b=e.target.closest('button[data-topic]'); if(!b) return; matTopic=b.dataset.topic; saveMatSel(); renderMat(); });
   $('#mat_refresh').onclick=function(){ loadMat(true); };
+
+  // ===== تأكيد الحجوزات (أدمن) =====
+  var BK_ST=['مبدئي','قيد التنسيق','تم التأكيد','تمت الخدمة','اتلغى'], bk=null, bkFilter='مبدئي';
+  try{ bkFilter=localStorage.getItem('mar_bkf')||'مبدئي'; }catch(e){}
+  function bkRow(label,v){ return v ? '<dt>'+label+'</dt><dd>'+esc(v)+'</dd>' : ''; }
+  function waNum(p){ p=String(p||'').replace(/\D/g,''); if(/^01\d{9}$/.test(p)) p='2'+p; return p; }
+  function renderBk(){
+    var list=bk||[], q=($('#bk_q').value||'').trim();
+    var counts={'الكل':list.length}; BK_ST.forEach(function(s){ counts[s]=list.filter(function(b){ return b.status===s; }).length; });
+    $('#bk_filter').innerHTML=['الكل'].concat(BK_ST).map(function(s){
+      return '<button type="button" data-f="'+esc(s)+'" aria-pressed="'+(s===bkFilter)+'">'+esc(s)+' ('+fmt(counts[s]||0)+')</button>'; }).join('');
+    var shown=list.filter(function(b){ return (bkFilter==='الكل'||b.status===bkFilter) && (!q || (b.eparchy+' '+b.contact).indexOf(q)>-1); });
+    $('#bk_list').innerHTML = shown.length ? shown.map(function(b){
+      var training=/تدريب/.test(b.type), carnival=/كرنفال/.test(b.type);
+      var wa=waNum(b.whatsapp||b.phone);
+      return '<div class="bk '+(ST[b.status]||'s1')+'" data-row="'+b.row+'" data-key="'+esc(b.key)+'" data-ep="'+esc(b.eparchy)+'">'+
+        '<div class="bk-top"><div><b>'+esc(b.eparchy)+'</b><small>'+esc(b.type)+' · اتسجل '+esc(b.at)+'</small></div><span class="st '+(ST[b.status]||'s1')+'">'+esc(b.status)+'</span></div>'+
+        '<dl>'+(training?bkRow('التدريب',b.tDate+(b.tAlt?' (بديل '+b.tAlt+')':''))+bkRow('عدد الخدام',b.tServants)+bkRow('مكان التدريب',b.tPlace)+bkRow('الإقامة',b.stay):'')+
+        (carnival?bkRow('الكرنفال',b.cDate+(b.cAlt?' (بديل '+b.cAlt+')':''))+bkRow('المخدومين المتوقع',b.cServed)+bkRow('مكان الكرنفال',b.cPlace):'')+
+        bkRow('مسئول المتابعة',b.contact+(b.role?' – '+b.role:''))+bkRow('ملاحظات',b.notes)+bkRow('سجّله',b.by)+'</dl>'+
+        '<div class="bk-contact">'+(b.phone?'<a class="btn ghost sm" href="tel:'+esc(b.phone)+'">📞 '+esc(b.phone)+'</a>':'')+
+          (wa?'<a class="btn ghost sm" href="https://wa.me/'+wa+'" target="_blank" rel="noopener">واتساب</a>':'')+
+          (b.email?'<a class="btn ghost sm" href="mailto:'+esc(b.email)+'">إيميل</a>':'')+'</div>'+
+        '<div class="bk-act"><select class="bk_st">'+BK_ST.map(function(s){ return '<option'+(s===b.status?' selected':'')+'>'+s+'</option>'; }).join('')+'</select>'+
+        '<button class="btn sm bk_save" type="button">حفظ الحالة</button></div><div class="msg bk_msg"></div></div>';
+    }).join('') : '<p class="empty">مفيش طلبات بالحالة دي.</p>';
+  }
+  function loadBk(){
+    if(PREVIEW) return;
+    var m=$('#bkMsg'); say(m,'جاري التحميل...',true); $('#bk_refresh').disabled=true;
+    google.script.run.withSuccessHandler(function(list){ $('#bk_refresh').disabled=false; m.textContent=''; bk=list||[]; renderBk(); })
+      .withFailureHandler(function(err){ $('#bk_refresh').disabled=false; if(isAuthErr(err)){ logout(); return; } say(m,errText(err),false); })
+      .getBookings(token);
+  }
+  $('#bk_refresh').onclick=loadBk;
+  $('#bk_q').addEventListener('input',renderBk);
+  $('#bk_filter').addEventListener('click',function(e){ var b=e.target.closest('button[data-f]'); if(!b) return; bkFilter=b.dataset.f; try{ localStorage.setItem('mar_bkf',bkFilter); }catch(x){} renderBk(); });
+  $('#bk_list').addEventListener('click',function(e){
+    if(!e.target.classList.contains('bk_save')) return;
+    var card=e.target.closest('.bk'), msg=card.querySelector('.bk_msg'), st=card.querySelector('.bk_st').value;
+    send('setBookingStatus',{row:card.dataset.row,key:card.dataset.key,eparchy:card.dataset.ep,status:st},e.target,msg,function(){
+      (bk||[]).forEach(function(b){ if(String(b.row)===card.dataset.row && String(b.key)===card.dataset.key) b.status=st; });
+      say(msg,'اتحفظ ✓'+(st==='تم التأكيد'?' ونزل في الكالندر':''),true);
+      setTimeout(renderBk,1200);
+    });
+  });
 
   // ===== متابعة إيبارشيتي =====
   var ST={'مبدئي':'s1','قيد التنسيق':'s2','تم التأكيد':'s3','تمت الخدمة':'s4','اتلغى':'s5'};
