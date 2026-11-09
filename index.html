@@ -207,15 +207,13 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
 .bk-contact a{text-decoration:none}
 .bk-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .bk-act select{flex:1;min-width:150px}
-.wa-ic{width:20px;height:20px;vertical-align:middle;margin-inline-end:6px;flex:none}
-.tabs button.tab-wa{color:#128c4b;border-color:#bfe6cf;background:#eefaf3}
+.wa-ic{width:16px;height:16px;vertical-align:middle;margin-inline-end:5px;flex:none}
+.tabs button.tab-wa{flex:0 0 auto;min-height:0;padding:5px 14px;margin-inline:auto;border-radius:20px;font-size:13px;color:#128c4b;border-color:#bfe6cf;background:#eefaf3;display:inline-flex;align-items:center}
 .tabs button.tab-wa[aria-selected="true"]{background:#25d366;border-color:#25d366;color:#fff}
-.contact-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;display:grid;gap:14px;text-align:center;justify-items:center;margin-bottom:40px}
-.contact-card .big-ic{width:64px;height:64px;border-radius:50%;background:#25d366;color:#fff;display:grid;place-items:center}
-.contact-card .big-ic .wa-ic{width:38px;height:38px;margin:0}
-.contact-card .num{font-size:24px;font-weight:700;direction:ltr;letter-spacing:.5px}
-.btn-wa{background:#25d366!important;border-color:#25d366!important;color:#fff!important;text-decoration:none;display:inline-flex;align-items:center;gap:6px;font-size:17px;padding:12px 22px}
-.contact-card .row{justify-content:center}
+.contact-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.contact-card .num{font-weight:700;direction:ltr;flex:1;min-width:120px}
+.contact-card .num small{display:block;font-weight:500;color:var(--muted);direction:rtl;font-size:12.5px}
+.btn-wa{background:#25d366!important;border-color:#25d366!important;color:#fff!important;text-decoration:none;display:inline-flex;align-items:center}
 .contact-card a.btn{text-decoration:none}
 </style>
 </head>
@@ -641,13 +639,9 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
   <!-- CONTACT -->
   <section data-panel="contact" hidden>
     <div class="contact-card">
-      <span class="big-ic"><svg class="wa-ic" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 7L3 29l6.4-2c2 1.1 4.3 1.7 6.6 1.7 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.4c-2.1 0-4.1-.6-5.9-1.7l-.4-.2-3.8 1.2 1.2-3.7-.3-.4c-1.2-1.8-1.8-3.8-1.8-6 0-5.9 4.9-10.6 10.9-10.6S26.9 9.9 26.9 15.8 22 26.4 16 26.4zm6-7.9c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.7s1.2 3.1 1.4 3.3c.2.2 2.4 3.6 5.7 5 .8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg></span>
-      <div><h2>تواصل معنا</h2><p class="lead">عندك سؤال عن خدمة ماراثون، أو عايز تحجز لإيبارشيتك؟ ابعتلنا على واتساب.</p></div>
-      <div class="num">01274550707</div>
-      <div class="row">
-        <a class="btn btn-wa" href="https://wa.me/201274550707?text=%D8%A3%D9%87%D9%84%D8%A7%D9%8B%20%D8%AE%D8%AF%D9%85%D8%A9%20%D9%85%D8%A7%D8%B1%D8%A7%D8%AB%D9%88%D9%86%D8%8C%20" target="_blank" rel="noopener"><svg class="wa-ic" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 7L3 29l6.4-2c2 1.1 4.3 1.7 6.6 1.7 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.4c-2.1 0-4.1-.6-5.9-1.7l-.4-.2-3.8 1.2 1.2-3.7-.3-.4c-1.2-1.8-1.8-3.8-1.8-6 0-5.9 4.9-10.6 10.9-10.6S26.9 9.9 26.9 15.8 22 26.4 16 26.4zm6-7.9c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.7s1.2 3.1 1.4 3.3c.2.2 2.4 3.6 5.7 5 .8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg>ابعت رسالة واتساب</a>
-        <a class="btn ghost" href="tel:01274550707">📞 اتصال</a>
-      </div>
+      <div class="num"><small>تواصل معنا على واتساب</small>01274550707</div>
+      <a class="btn sm btn-wa" href="https://wa.me/201274550707?text=%D8%A3%D9%87%D9%84%D8%A7%D9%8B%20%D8%AE%D8%AF%D9%85%D8%A9%20%D9%85%D8%A7%D8%B1%D8%A7%D8%AB%D9%88%D9%86%D8%8C%20" target="_blank" rel="noopener"><svg class="wa-ic" viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3C8.8 3 3 8.7 3 15.8c0 2.5.7 4.9 2 7L3 29l6.4-2c2 1.1 4.3 1.7 6.6 1.7 7.2 0 13-5.7 13-12.8S23.2 3 16 3zm0 23.4c-2.1 0-4.1-.6-5.9-1.7l-.4-.2-3.8 1.2 1.2-3.7-.3-.4c-1.2-1.8-1.8-3.8-1.8-6 0-5.9 4.9-10.6 10.9-10.6S26.9 9.9 26.9 15.8 22 26.4 16 26.4zm6-7.9c-.3-.2-1.9-1-2.2-1.1-.3-.1-.5-.2-.7.2-.2.3-.8 1-1 1.2-.2.2-.4.2-.7.1-.3-.2-1.4-.5-2.6-1.6-1-.9-1.6-1.9-1.8-2.2-.2-.3 0-.5.1-.7l.5-.6c.2-.2.2-.4.3-.6.1-.2 0-.4 0-.6l-1-2.4c-.3-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.1-1.2 2.7s1.2 3.1 1.4 3.3c.2.2 2.4 3.6 5.7 5 .8.3 1.4.5 1.9.7.8.2 1.5.2 2.1.1.6-.1 1.9-.8 2.2-1.5.3-.7.3-1.4.2-1.5-.1-.2-.3-.3-.6-.4z"/></svg>واتساب</a>
+      <a class="btn ghost sm" href="tel:01274550707">📞 اتصال</a>
     </div>
   </section>
 
