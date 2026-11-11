@@ -229,10 +229,10 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <button role="tab" data-tab="steps" aria-selected="false">خطوات التأسيس</button>
     <button role="tab" data-tab="team" aria-selected="false" data-auth hidden><span class="sn">١</span>الفريق المحلي</button>
     <button role="tab" data-tab="book" aria-selected="false" data-auth hidden><span class="sn">٢</span>طلب حجز</button>
-    <button role="tab" data-tab="mission" aria-selected="false" data-auth hidden><span class="sn">٣</span><span dir="ltr">Marathon Mission</span></button>
-    <button role="tab" data-tab="report" aria-selected="false" data-auth hidden><span class="sn">٤</span>كرنفالات خدام الإيبارشية</button>
+    <button role="tab" data-tab="report" aria-selected="false" data-auth hidden><span class="sn">٣</span>كرنفالات خدام الإيبارشية</button>
     <button role="tab" data-tab="files" aria-selected="false" data-auth hidden>ملفات تنفيذ الكرنفال</button>
     <button role="tab" data-tab="mine" aria-selected="false" data-auth hidden>متابعة إيبارشيتي</button>
+    <button role="tab" data-tab="mission" aria-selected="false" class="adm" data-admin hidden><span dir="ltr">Marathon Mission</span></button>
     <button role="tab" data-tab="stats" aria-selected="false" class="adm" data-admin hidden>الإحصائيات</button>
     <button role="tab" data-tab="confirm" aria-selected="false" class="adm" data-admin hidden>تأكيد الحجوزات</button>
     <button role="tab" data-tab="coord" aria-selected="false" class="adm" data-admin hidden>منسقين الإيبارشيات</button>
@@ -301,14 +301,13 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <h3>إزاي تشترك إيبارشيتك؟</h3>
     <div class="steps">
       <div class="step"><span class="n">١</span><b>الفريق المحلي</b><p>تسجيل خدام لجنة ماراثون المحلية: الاسم والموبايل والإيميل والمؤهل والخدمة الحالية.</p></div>
-      <div class="step"><span class="n">٢</span><b>طلب الحجز</b><p>الإيبارشية تقترح ميعاد للتدريب أو الكرنفال أو الاتنين، وتحدد مسئول متابعة.</p></div>
-      <div class="step"><span class="n">٣</span><b dir="ltr" style="text-align:right">Marathon Mission</b><p>فريق ماراثون ينزل الإيبارشية يدرّب اللجنة المحلية ويقدّم معاهم أول كرنفال.</p></div>
-      <div class="step"><span class="n">٤</span><b>كرنفالات خدام الإيبارشية</b><p>بعد كل كرنفال تقدّمه اللجنة المحلية، المسئول يسجل الكنيسة والقرية وعدد الخدام والمخدومين.</p></div>
+      <div class="step"><span class="n">٢</span><b>طلب الحجز</b><p>الإيبارشية تقترح ميعاد للتدريب أو الكرنفال أو الاتنين، وتحدد مسئول متابعة. وبعد التأكيد فريق ماراثون بينزل يدرّب اللجنة المحلية ويقدّم معاهم أول كرنفال.</p></div>
+      <div class="step"><span class="n">٣</span><b>كرنفالات خدام الإيبارشية</b><p>بعد كل كرنفال تقدّمه اللجنة المحلية، المسئول يسجل الكنيسة والقرية وعدد الخدام والمخدومين.</p></div>
     </div>
     <div class="row">
       <button class="btn" type="button" data-jump="team">١ سجّل الفريق المحلي</button>
       <button class="btn ghost" type="button" data-jump="book">٢ اطلب حجز لإيبارشيتك</button>
-      <button class="btn ghost" type="button" data-jump="report">٤ سجّل كرنفال لخدام الإيبارشية</button>
+      <button class="btn ghost" type="button" data-jump="report">٣ سجّل كرنفال لخدام الإيبارشية</button>
     </div>
   </section>
 
@@ -798,7 +797,7 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   function say(el,t,ok){ el.textContent=t; el.className='msg '+(ok?'ok':'err'); }
 
   // ===== الدخول =====
-  var PUBLIC=['about','steps','contact'], ADMIN=['coord','confirm','stats'];
+  var PUBLIC=['about','steps','contact'], ADMIN=['coord','confirm','stats','mission'];
   var token='', user=null, pending='';
   try{ token=localStorage.getItem('mar_tok')||''; }catch(e){}
 
