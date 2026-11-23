@@ -217,6 +217,11 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
 .contact-card a.btn{text-decoration:none}
 .tab-badge{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;margin-inline-start:6px;border-radius:11px;background:#d93025;color:#fff;font-size:12.5px;font-weight:700;line-height:1;vertical-align:middle}
 .tab-badge[hidden]{display:none}
+.x_chg{display:block;margin-top:6px;white-space:nowrap}
+.chg{position:sticky;right:0;width:min(520px,calc(100vw - 80px));box-sizing:border-box;display:grid;gap:8px;padding:10px;border:1px dashed var(--line);border-radius:12px;background:var(--bg);text-align:start}
+.chg .grid{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.chg input{background:var(--surface)}
+.hint.warn{color:var(--warn);font-weight:600;margin:0}
 </style>
 </head>
 <body>
@@ -671,7 +676,7 @@ header{border-bottom:8px solid transparent;border-image:repeating-linear-gradien
     <div class="minekpi" id="mine_kpi"></div>
     <div class="panel-s">
       <h3>طلبات الحجز</h3>
-      <p class="hint">الحالة بتتحدث من فريق ماراثون، وهيوصلكم إيميل كل ما تتغير.</p>
+      <p class="hint">الحالة بتتحدث من فريق ماراثون، وهيوصلكم إيميل كل ما تتغير. لو محتاجين تغيّروا الميعاد دوسوا «تغيير الميعاد»، والحجز هيرجع «مبدئي» لحد ما فريق ماراثون يأكده تاني.</p>
       <div class="tbl"><table>
         <thead><tr><th>الحالة</th><th>النوع</th><th>التدريب</th><th>الكرنفال</th><th>اتسجل</th></tr></thead>
         <tbody id="mine_book"><tr><td colspan="5" class="empty">جاري التحميل...</td></tr></tbody>
@@ -1174,9 +1179,11 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
       $('#mine_refresh').disabled=false; m.textContent='';
       if(adm && d.eparchy && !$('#mine_ep').value) $('#mine_ep').value=d.eparchy;
       if(!d.eparchy){ $('#mine_kpi').innerHTML=''; $('#mine_book').innerHTML='<tr><td colspan="5" class="empty">اختار الإيبارشية من فوق.</td></tr>'; $('#mine_miss').innerHTML=''; $('#mine_mcount').textContent=''; return; }
+      mineBk=d.bookings||[];
       $('#mine_kpi').innerHTML='<span>الإيبارشية: <b>'+esc(d.eparchy)+'</b></span><span>الخدام المسجلين: <b>'+fmt(d.team)+'</b></span><span>طلبات الحجز: <b>'+fmt(d.bookings.length)+'</b></span>';
       $('#mine_book').innerHTML = d.bookings.length ? d.bookings.map(function(b){
-        return '<tr><td><span class="st '+(ST[b.status]||'s1')+'">'+esc(b.status)+'</span></td><td>'+esc(b.type)+'</td><td>'+esc(b.tDate||'—')+'</td><td>'+esc(b.cDate||'—')+'</td><td>'+esc(b.at)+'</td></tr>';
+        var canEdit = b.row && b.status!=='تمت الخدمة' && b.status!=='اتلغى';
+        return '<tr><td><span class="st '+(ST[b.status]||'s1')+'">'+esc(b.status)+'</span>'+(canEdit?'<button type="button" class="btn sm ghost x_chg" data-i="'+mineBk.indexOf(b)+'">تغيير الميعاد</button>':'')+'</td><td>'+esc(b.type)+'</td><td>'+esc(b.tDate||'—')+'</td><td>'+esc(b.cDate||'—')+'</td><td>'+esc(b.at)+'</td></tr>';
       }).join('') : '<tr><td colspan="5" class="empty">لسه مفيش طلبات حجز للإيبارشية دي.</td></tr>';
       $('#mine_mcount').textContent='('+fmt(d.missing.length)+')';
       $('#mine_miss').innerHTML = d.missing.length ? d.missing.map(function(x){
@@ -1193,6 +1200,37 @@ var API_URL = 'https://script.google.com/macros/s/AKfycbwtIEDdfOYGJSu8q2IdX7ghe0
   }
   $('#mine_refresh').onclick=loadMine;
   $('#mine_ep').addEventListener('change', loadMine);
+  // تغيير ميعاد حجز
+  var mineBk=[];
+  $('#mine_book').addEventListener('click',function(e){
+    var t=e.target;
+    if(t.classList.contains('x_chg')){
+      var tr=t.closest('tr'), nx=tr.nextElementSibling;
+      if(nx && nx.classList.contains('chg-row')){ nx.remove(); return; }
+      var b=mineBk[+t.dataset.i]; if(!b) return;
+      var tr2=/تدريب/.test(b.type), cr=/كرنفال/.test(b.type), today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+      var f=function(lbl,cls,v,req){ return '<label>'+(req?'<span class="req">'+lbl+'</span>':lbl)+'<input type="date" class="'+cls+'" min="'+today+'" value="'+esc(v||'')+'"></label>'; };
+      var row=document.createElement('tr'); row.className='chg-row';
+      row.innerHTML='<td colspan="5"><div class="chg" data-i="'+t.dataset.i+'"><b>الميعاد الجديد</b><div class="grid">'+
+        (tr2? f('ميعاد التدريب','c_t',b.tIso,1)+f('ميعاد بديل للتدريب','c_ta',b.tAltIso):'')+
+        (cr? f('ميعاد الكرنفال','c_c',b.cIso,1)+f('ميعاد بديل للكرنفال','c_ca',b.cAltIso):'')+
+        '</div><label>سبب التغيير (اختياري)<input class="c_reason" maxlength="300" placeholder="مثلاً: ظروف في الكنيسة"></label>'+
+        (b.status!=='مبدئي'?'<p class="hint warn">الحجز ده حالته «'+esc(b.status)+'». لو غيّرت الميعاد هيرجع «مبدئي» لحد ما فريق ماراثون يأكده تاني.</p>':'')+
+        '<div class="row"><button type="button" class="btn sm c_save">حفظ الميعاد الجديد</button><button type="button" class="btn sm ghost c_cancel">إلغاء</button><span class="msg c_msg"></span></div></div></td>';
+      tr.after(row); return;
+    }
+    if(t.classList.contains('c_cancel')){ t.closest('tr').remove(); return; }
+    if(t.classList.contains('c_save')){
+      var box=t.closest('.chg'), b2=mineBk[+box.dataset.i], msg=box.querySelector('.c_msg');
+      var g=function(c){ var x=box.querySelector(c); return x?x.value:''; };
+      if(box.querySelector('.c_t') && !g('.c_t')) return say(msg,'اكتب ميعاد التدريب.',false);
+      if(box.querySelector('.c_c') && !g('.c_c')) return say(msg,'اكتب ميعاد الكرنفال.',false);
+      send('changeBookingDate',{row:b2.row,key:b2.key,tDate:g('.c_t'),tAlt:g('.c_ta'),cDate:g('.c_c'),cAlt:g('.c_ca'),reason:g('.c_reason').trim()},t,msg,function(){
+        say(msg,'اتحفظ ✓ والحجز رجع «مبدئي» لحد ما فريق ماراثون يأكده.',true);
+        setTimeout(function(){ loadMine(); prefetchBk(); },1400);
+      });
+    }
+  });
   $('#mine_miss').addEventListener('click',function(e){
     if(!e.target.classList.contains('x_save')) return;
     var box=e.target.closest('.miss'), msg=box.querySelector('.x_msg'), q=function(c){ return box.querySelector(c).value.trim(); };
